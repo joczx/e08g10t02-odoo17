@@ -116,7 +116,7 @@ stages:
                 echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chown postgres:postgres /home/azureuser/deploy-temp/odoo.sql
                 echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod 644 /home/azureuser/deploy-temp/odoo.sql
                 echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(restoreDBscript)
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(restoreDBscript) "odoo17" "odoo" "/home/azureuser/deploy-temp/odoo.sql"
+                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' -u postgres $(restoreDBscript) "odoo17" "odoo" "/home/azureuser/deploy-temp/odoo.sql"
 
           # Run update script
           - task: SSH@0
