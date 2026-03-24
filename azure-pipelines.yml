@@ -39,10 +39,9 @@ stages:
                 set -e
                 echo "Deploying branch: $(Build.SourceBranchName)"
                 cd $(stagePath)
-                rm -rf deploy-temp *-odoo17
+                rm -rf deploy-temp odoo17 *-odoo17
 
-                git clone -b Staging $(repoUrl) --quiet
-                mv *-odoo17 deploy-temp
+                git clone -b Staging $(repoUrl) deploy-temp --quiet
 
                 cd deploy-temp
                 rm -f .DS_Store
@@ -84,10 +83,9 @@ stages:
                 set -e
                 echo "Deploying branch: $(Build.SourceBranchName)"
                 cd $(stagePath)
-                rm -rf deploy-temp *-odoo17
+                rm -rf deploy-temp odoo17 *-odoo17
 
-                git clone -b master $(repoUrl) --quiet
-                mv *-odoo17 deploy-temp
+                git clone -b master $(repoUrl) deploy-temp --quiet
 
                 cd deploy-temp
                 rm -f .DS_Store
@@ -103,7 +101,7 @@ stages:
                 set -e
                 cd $(stagePath)/deploy-temp/
                 echo "Uncompressing odoo.sql.gz..."
-                gunzip -c $(tempDeploy)/odoo.sql.gz > $(tempDeploy)/odoo.sql
+                gunzip -c $(stagePath)/deploy-temp/odoo.sql.gz > $(stagePath)/deploy-temp/odoo.sql
                 echo "Uncompress complete: $(stagePath)/deploy-temp/odoo.sql"
 
           # Restore Database
