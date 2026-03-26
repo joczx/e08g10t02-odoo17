@@ -42,7 +42,7 @@ services:
 
   # ── MOODLE (pre-built Bitnami image) ──
   moodle:
-    image: bitnamilegacy/moodle:4
+    image: bitnamilegacy/moodle:4.3.4
     depends_on:
       - moodle-db
     environment:
