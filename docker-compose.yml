@@ -19,7 +19,7 @@ services:
       - "8069:8069"
     volumes:
       - ./addons:/mnt/extra-addons
-      - ./odoo.conf:/etc/odoo/odoo.conf  # Mount config
+      #- ./odoo.conf:/etc/odoo/odoo.conf  # Mount config
       - odoo-filestore:/var/lib/odoo/filestore
       - odoo-data:/var/lib/odoo
 
