@@ -18,6 +18,7 @@ stages:
 # =========================
 # STAGING STAGE
 # =========================
+
 - stage: Staging
   displayName: Deploy to Staging
   condition: eq(variables['Build.SourceBranchName'], 'Staging')
@@ -30,6 +31,7 @@ stages:
         deploy:
           steps:
 
+          # Sync code
           - task: SSH@0
             displayName: "Sync Code - Staging"
             inputs:
@@ -46,7 +48,18 @@ stages:
                 cd deploy-temp
                 rm -f .DS_Store
                 rm -rf .github
-
+          #debug
+          - task: SSH@0
+            displayName: "Debug - Cat script on server"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-staging'
+              runOptions: commands
+              commands: |
+                echo "=== Script content ==="
+                cat /home/is214/deploy-temp/update_code.sh
+                echo "=== Running as user ==="
+                whoami
+          # Run update script
           - task: SSH@0
             displayName: "Run Update Script - Staging"
             inputs:
