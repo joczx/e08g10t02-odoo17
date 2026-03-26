@@ -1,122 +1,151 @@
-services:
-  # ── NGINX REVERSE PROXY ──
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"   # ✅ FIXED
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - web
-      - moodle
-      - osticket
-    networks:
-      - app-network
-    restart: always
+# docker-compose.yml
+# Single VM: 20.189.114.223
+# Odoo DB:   Railway PostgreSQL @ crossover.proxy.rlwy.net:10320  db=railway  (Odoo creates "Odoo17" inside)
+# Moodle DB: Railway PostgreSQL @ centerbeam.proxy.rlwy.net:52940  db=railway  schema=moodle
+# Moodle:    bitnami/moodle:4.3.2 (legacy pinned)
+# No Azure File Share — single VM uses local Docker volumes
+# ─────────────────────────────────────────────────────────────────────────────
 
-  # ── ODOO ──
-  web:
+version: '3.8'
+services:
+
+ 
+  # ── Odoo 17 ──────────────────────────────────────────────────────────────────
+  odoo:
     image: josephchew/is214odoot2:v1
-    depends_on:
-      - db
+    container_name: odoo_app
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
     volumes:
       - ./addons:/mnt/extra-addons
-      - ./config:/etc/odoo
-      - ./filestore:/var/lib/odoo/filestore
-      - odoo-web-data:/var/lib/odoo
-    networks:
-      - app-network
-    restart: always
+      - ./odoo.conf:/etc/odoo/odoo.conf  # Mount config
+      - odoo-filestore:/var/lib/odoo/filestore
+      - odoo-data:/var/lib/odoo
 
-  db:
-    image: postgres:13
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_PASSWORD=odoo
-      - POSTGRES_USER=odoo
-    command: >   # ✅ FIXED
-      postgres -c listen_addresses='*'
-               -c password_encryption=md5
-    volumes:
-      - odoo-db-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    restart: always
+    mem_limit: 1536m
+    cpus: "1.0"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    command: >
+      --db_host=crossover.proxy.rlwy.net
+      --db_port=10320
+      --db_user=odoo17
+      --db_password=QxAdxgCFqHshmjpqscDdwORipdGVLcqT
+      --admin-passwd=OdooMaster@2026!
+      --db_maxconn=5
+      --db_sslmode=disable
+      --proxy-mode
+      --database=Odoo17
 
-  # ── MOODLE ──
+ # ── Moodle 4.3.2 (Bitnami legacy pinned) ─────────────────────────────────────
   moodle:
     image: bitnamilegacy/moodle:4.3.4
-    depends_on:
-      - moodle-db
+    container_name: moodle_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
     environment:
-      - MOODLE_DATABASE_HOST=moodle-db
-      - MOODLE_DATABASE_PORT_NUMBER=3306
-      - MOODLE_DATABASE_USER=moodle
-      - MOODLE_DATABASE_PASSWORD=moodle_secret
-      - MOODLE_DATABASE_NAME=moodle
-      - MOODLE_USERNAME=admin
-      - MOODLE_PASSWORD=Admin@1234
-      - MOODLE_SITE_NAME=ESMOS Training
+      # Database connection — Railway PostgreSQL
+      MOODLE_DATABASE_TYPE:         pgsql
+      MOODLE_DATABASE_HOST:         ${MOODLE_PG_HOST}
+      MOODLE_DATABASE_PORT_NUMBER:  "${MOODLE_PG_PORT}"
+      MOODLE_DATABASE_USER:         ${MOODLE_PG_USER}
+      MOODLE_DATABASE_PASSWORD:     ${MOODLE_PG_PASSWORD}
+      MOODLE_DATABASE_NAME:         ${MOODLE_PG_DB}
+      # Schema — tells Moodle to isolate its tables under the "moodle" schema
+      # inside the "railway" database rather than using "public"
+      MOODLE_DATABASE_SCHEMA:       ${MOODLE_PG_SCHEMA}
+
+      # Admin account
+      MOODLE_USERNAME:   ${MOODLE_USERNAME}
+      MOODLE_PASSWORD:   ${MOODLE_PASSWORD}
+      MOODLE_EMAIL:      ${MOODLE_EMAIL}
+      MOODLE_SITE_NAME:  "${MOODLE_SITE_NAME}"
+
+      # Host must be IP:port since there is no domain/reverse proxy on port 80
+      # Moodle uses this to build all internal URLs (wwwroot in config.php)
+      MOODLE_HOST: "${VM_PUBLIC_IP}:8080"
+
+      # Proxy settings — no SSL, no reverse proxy on this VM
+      MOODLE_REVERSEPROXY: "no"
+      MOODLE_SSLPROXY:     "no"
+
+      # Bootstrap flag — "no" on first deploy, "yes" on all subsequent deploys
+      # and on any second VM to prevent wiping the DB that VM1 already initialised
+      MOODLE_SKIP_BOOTSTRAP: "${MOODLE_SKIP_BOOTSTRAP}"
+
+      # Railway proxy — disable SSL on the driver level same reason as Odoo
+      MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=disable"
+
+      # PHP memory limit — Bitnami 4.3.2 default is low, raise it
+      PHP_MEMORY_LIMIT: "256M"
+      PHP_MAX_EXECUTION_TIME: "300"
+
     volumes:
       - moodle-data:/bitnami/moodle
-      - moodledata-data:/bitnami/moodledata
-    networks:
-      - app-network
-    restart: always
+      - moodle-moodledata:/bitnami/moodledata
+    mem_limit: 1024m
+    cpus: "0.8"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
-  moodle-db:
-    image: mariadb:10.11
-    environment:
-      - MARIADB_ROOT_PASSWORD=root_secret
-      - MARIADB_DATABASE=moodle
-      - MARIADB_USER=moodle
-      - MARIADB_PASSWORD=moodle_secret
-      - MARIADB_CHARACTER_SET=utf8mb4
-      - MARIADB_COLLATE=utf8mb4_unicode_ci
-    volumes:
-      - moodle-db-data:/var/lib/mysql
-    networks:
-      - app-network
-    restart: always
-
-  # ── OSTICKET ──
-  osticket:
-    image: osticket/osticket:latest
+  # ── Moodle Cron (dedicated container — persists across restarts) ─────────────
+  # Runs Moodle's CLI cron every 60 seconds.
+  # Shares the same volumes and DB config as the main moodle container.
+  # Using a dedicated container means the cron survives container restarts
+  # without any crontab setup on the host.
+  moodle-cron:
+    image: bitnamilegacy/moodle:4.3.4
+    container_name: moodle_cron
+    restart: unless-stopped
     depends_on:
-      - osticket-db
+      - moodle
     environment:
-      - MYSQL_HOST=osticket-db
-      - MYSQL_DATABASE=osticket
-      - MYSQL_USER=osticket
-      - MYSQL_PASSWORD=osticket_secret
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: ${MOODLE_PG_HOST}
+      MOODLE_DATABASE_PORT_NUMBER: "${MOODLE_PG_PORT}"
+      MOODLE_DATABASE_USER: ${MOODLE_PG_USER}
+      MOODLE_DATABASE_PASSWORD: ${MOODLE_PG_PASSWORD}
+      MOODLE_DATABASE_NAME: ${MOODLE_PG_DB}
+      MOODLE_DATABASE_SCHEMA: ${MOODLE_PG_SCHEMA}
+      MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=disable"
+      MOODLE_SKIP_BOOTSTRAP: "yes"
+      PHP_MEMORY_LIMIT: "128M"
     volumes:
-      - osticket-data:/data/upload
-    networks:
-      - app-network
-    restart: always
+      - moodle-data:/bitnami/moodle
+      - moodle-moodledata:/bitnami/moodledata
+    entrypoint: ["/bin/bash", "-c"]
+    command: >-
+      echo "Moodle cron container started";
+      echo "Waiting 120s for main Moodle container to finish initialising...";
+      sleep 120;
+      echo "Starting cron loop — running every 60s";
+      while true; do
+        echo "[$$(date '+%Y-%m-%d %H:%M:%S')] Running Moodle cron...";
+        /opt/bitnami/php/bin/php /bitnami/moodle/admin/cli/cron.php 2>&1;
+        echo "[$$(date '+%Y-%m-%d %H:%M:%S')] Cron done. Sleeping 60s.";
+        sleep 60;
+      done
+    mem_limit: 256m
+    cpus: "0.2"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
 
-  osticket-db:
-    image: mariadb:10.6   # ✅ FIXED
-    environment:
-      - MYSQL_ROOT_PASSWORD=root_secret
-      - MYSQL_DATABASE=osticket
-      - MYSQL_USER=osticket
-      - MYSQL_PASSWORD=osticket_secret
-    volumes:
-      - osticket-db-data:/var/lib/mysql
-    networks:
-      - app-network
-    restart: always
-
-networks:
-  app-network:
-    driver: bridge
-
+# ── Named volumes — local to this VM ─────────────────────────────────────────
+# If you later add a second VM for load balancing, replace these with
+# Azure File Share CIFS mounts (see full guide Phase 5.6)
 volumes:
-  odoo-web-data:
-  odoo-db-data:
-  moodle-data:
-  moodledata-data:
-  moodle-db-data:
-  osticket-data:
-  osticket-db-data:
+  odoo-filestore: {}
+  odoo-data: {}
+  moodle-data: {}
+  moodle-moodledata: {}
