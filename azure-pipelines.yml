@@ -106,15 +106,12 @@ stages:
               runOptions: commands
               commands: |
                 set -e
+                echo "=== Current user ===" 
+                whoami
+                echo "=== Checking directory ==="
+                ls /home/is214/e08g10t02-odoo17/docker-compose.yml
                 cd /home/is214/e08g10t02-odoo17
-
-                echo "=== Pulling latest images ==="
+                echo "=== PWD ==="
+                pwd
                 docker compose pull 2>&1
-
-                echo "=== Starting all services ==="
                 docker compose up -d 2>&1
-
-                echo "=== Container status ==="
-                docker compose ps 2>&1
-
-                echo "=== Deploy complete ==="
