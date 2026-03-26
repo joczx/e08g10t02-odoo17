@@ -3,7 +3,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8069:80"
+      - "80:80"   # ✅ FIXED
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
@@ -14,7 +14,7 @@ services:
       - app-network
     restart: always
 
-  # ── ODOO (your custom image from Docker Hub) ──
+  # ── ODOO ──
   web:
     image: josephchew/is214odoot2:v1
     depends_on:
@@ -34,13 +34,16 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
+    command: >   # ✅ FIXED
+      postgres -c listen_addresses='*'
+               -c password_encryption=md5
     volumes:
       - odoo-db-data:/var/lib/postgresql/data
     networks:
       - app-network
     restart: always
 
-  # ── MOODLE (pre-built Bitnami image) ──
+  # ── MOODLE ──
   moodle:
     image: bitnamilegacy/moodle:4.3.4
     depends_on:
@@ -76,7 +79,7 @@ services:
       - app-network
     restart: always
 
-  # ── OSTICKET (pre-built community image) ──
+  # ── OSTICKET ──
   osticket:
     image: osticket/osticket:latest
     depends_on:
@@ -93,7 +96,7 @@ services:
     restart: always
 
   osticket-db:
-    image: mysql:8.0
+    image: mariadb:10.6   # ✅ FIXED
     environment:
       - MYSQL_ROOT_PASSWORD=root_secret
       - MYSQL_DATABASE=osticket
