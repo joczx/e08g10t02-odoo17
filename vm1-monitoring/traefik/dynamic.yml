@@ -1,0 +1,39 @@
+http:
+  routers:
+    odoo-router:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - odoo
+      service: odoo-loadbalancer
+    moodle-router:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - moodle
+      service: moodle-loadbalancer
+  services:
+    odoo-loadbalancer:
+      loadBalancer:
+        sticky:
+          cookie:
+            name: odoo_sticky
+            secure: false
+        servers:
+          - url: "http://10.0.0.4:8069"
+          - url: "http://<VM3_PRIVATE_IP>:8069"
+        healthCheck:
+          path: /web/health
+          interval: 10s
+          timeout: 3s
+    moodle-loadbalancer:
+      loadBalancer:
+        sticky:
+          cookie:
+            name: moodle_sticky
+            secure: false
+        servers:
+          - url: "http://10.0.0.4:8080"
+          - url: "http://<VM3_PRIVATE_IP>:8080"
+        healthCheck:
+          path: /login/index.php
+          interval: 10s
+          timeout: 3s

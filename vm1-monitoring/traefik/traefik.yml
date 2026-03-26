@@ -1,0 +1,18 @@
+entryPoints:
+  web:
+    address: ":80"
+  odoo:
+    address: ":8069"
+  moodle:
+    address: ":8080"
+  traefik:
+    address: ":8081"
+api:
+  dashboard: true
+  insecure: true
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+log:
+  level: INFO
