@@ -1,0 +1,119 @@
+services:
+  # ── NGINX REVERSE PROXY ──
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8069:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+      - moodle
+      - osticket
+    networks:
+      - app-network
+    restart: always
+
+  # ── ODOO (your custom image from Docker Hub) ──
+  web:
+    image: josephchew/is214odoot2:v1
+    depends_on:
+      - db
+    volumes:
+      - ./addons:/mnt/extra-addons
+      - ./config:/etc/odoo
+      - ./filestore:/var/lib/odoo/filestore
+      - odoo-web-data:/var/lib/odoo
+    networks:
+      - app-network
+    restart: always
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
+  # ── MOODLE (pre-built Bitnami image) ──
+  moodle:
+    image: bitnami/moodle:4.3
+    depends_on:
+      - moodle-db
+    environment:
+      - MOODLE_DATABASE_HOST=moodle-db
+      - MOODLE_DATABASE_PORT_NUMBER=3306
+      - MOODLE_DATABASE_USER=moodle
+      - MOODLE_DATABASE_PASSWORD=moodle_secret
+      - MOODLE_DATABASE_NAME=moodle
+      - MOODLE_USERNAME=admin
+      - MOODLE_PASSWORD=Admin@1234
+      - MOODLE_SITE_NAME=ESMOS Training
+    volumes:
+      - moodle-data:/bitnami/moodle
+      - moodledata-data:/bitnami/moodledata
+    networks:
+      - app-network
+    restart: always
+
+  moodle-db:
+    image: mariadb:10.11
+    environment:
+      - MARIADB_ROOT_PASSWORD=root_secret
+      - MARIADB_DATABASE=moodle
+      - MARIADB_USER=moodle
+      - MARIADB_PASSWORD=moodle_secret
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    volumes:
+      - moodle-db-data:/var/lib/mysql
+    networks:
+      - app-network
+    restart: always
+
+  # ── OSTICKET (pre-built community image) ──
+  osticket:
+    image: osticket/osticket:latest
+    depends_on:
+      - osticket-db
+    environment:
+      - MYSQL_HOST=osticket-db
+      - MYSQL_DATABASE=osticket
+      - MYSQL_USER=osticket
+      - MYSQL_PASSWORD=osticket_secret
+    volumes:
+      - osticket-data:/data/upload
+    networks:
+      - app-network
+    restart: always
+
+  osticket-db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_secret
+      - MYSQL_DATABASE=osticket
+      - MYSQL_USER=osticket
+      - MYSQL_PASSWORD=osticket_secret
+    volumes:
+      - osticket-db-data:/var/lib/mysql
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
+  moodle-data:
+  moodledata-data:
+  moodle-db-data:
+  osticket-data:
+  osticket-db-data:
