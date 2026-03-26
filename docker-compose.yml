@@ -6,7 +6,6 @@
 # No Azure File Share — single VM uses local Docker volumes
 # ─────────────────────────────────────────────────────────────────────────────
 
-version: '3.8'
 services:
 
  
@@ -19,10 +18,9 @@ services:
       - "8069:8069"
     volumes:
       - ./addons:/mnt/extra-addons
-      - ./odoo.conf:/etc/odoo/odoo.conf  # Mount config
+      - ./odoo.conf:/etc/odoo/odoo.conf
       - odoo-filestore:/var/lib/odoo/filestore
       - odoo-data:/var/lib/odoo
-
     mem_limit: 1536m
     cpus: "1.0"
     logging:
@@ -31,7 +29,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
- # ── Moodle 4.3.2 (Bitnami legacy pinned) ─────────────────────────────────────
+  # ── Moodle 4.3.2 (Bitnami legacy pinned) ─────────────────────────────────────
   moodle:
     image: bitnamilegacy/moodle:4.3.4
     container_name: moodle_app
@@ -39,42 +37,24 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Database connection — Railway PostgreSQL
       MOODLE_DATABASE_TYPE:         pgsql
       MOODLE_DATABASE_HOST:         ${MOODLE_PG_HOST}
       MOODLE_DATABASE_PORT_NUMBER:  "${MOODLE_PG_PORT}"
       MOODLE_DATABASE_USER:         ${MOODLE_PG_USER}
       MOODLE_DATABASE_PASSWORD:     ${MOODLE_PG_PASSWORD}
       MOODLE_DATABASE_NAME:         ${MOODLE_PG_DB}
-      # Schema — tells Moodle to isolate its tables under the "moodle" schema
-      # inside the "railway" database rather than using "public"
       MOODLE_DATABASE_SCHEMA:       ${MOODLE_PG_SCHEMA}
-
-      # Admin account
       MOODLE_USERNAME:   ${MOODLE_USERNAME}
       MOODLE_PASSWORD:   ${MOODLE_PASSWORD}
       MOODLE_EMAIL:      ${MOODLE_EMAIL}
       MOODLE_SITE_NAME:  "${MOODLE_SITE_NAME}"
-
-      # Host must be IP:port since there is no domain/reverse proxy on port 80
-      # Moodle uses this to build all internal URLs (wwwroot in config.php)
       MOODLE_HOST: "${VM_PUBLIC_IP}:8080"
-
-      # Proxy settings — no SSL, no reverse proxy on this VM
       MOODLE_REVERSEPROXY: "no"
       MOODLE_SSLPROXY:     "no"
-
-      # Bootstrap flag — "no" on first deploy, "yes" on all subsequent deploys
-      # and on any second VM to prevent wiping the DB that VM1 already initialised
       MOODLE_SKIP_BOOTSTRAP: "${MOODLE_SKIP_BOOTSTRAP}"
-
-      # Railway proxy — disable SSL on the driver level same reason as Odoo
       MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=disable"
-
-      # PHP memory limit — Bitnami 4.3.2 default is low, raise it
       PHP_MEMORY_LIMIT: "256M"
       PHP_MAX_EXECUTION_TIME: "300"
-
     volumes:
       - moodle-data:/bitnami/moodle
       - moodle-moodledata:/bitnami/moodledata
@@ -86,11 +66,7 @@ services:
         max-size: "50m"
         max-file: "3"
 
-  # ── Moodle Cron (dedicated container — persists across restarts) ─────────────
-  # Runs Moodle's CLI cron every 60 seconds.
-  # Shares the same volumes and DB config as the main moodle container.
-  # Using a dedicated container means the cron survives container restarts
-  # without any crontab setup on the host.
+  # ── Moodle Cron ─────────────────────────────────────────────────────────────
   moodle-cron:
     image: bitnamilegacy/moodle:4.3.4
     container_name: moodle_cron
@@ -131,11 +107,51 @@ services:
         max-size: "10m"
         max-file: "2"
 
-# ── Named volumes — local to this VM ─────────────────────────────────────────
-# If you later add a second VM for load balancing, replace these with
-# Azure File Share CIFS mounts (see full guide Phase 5.6)
+  # ── osTicket 1.18 ────────────────────────────────────────────────────────────
+  osticket:
+    image: osticket/osticket:1.18
+    container_name: osticket_app
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - osticket-db
+    environment:
+      MYSQL_HOST: osticket-db
+      MYSQL_DATABASE: osticket
+      MYSQL_USER: osticket
+      MYSQL_PASSWORD: osticket_secret
+    mem_limit: 512m
+    cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  osticket-db:
+    image: mariadb:10.11
+    container_name: osticket_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root_secret
+      MARIADB_DATABASE: osticket
+      MARIADB_USER: osticket
+      MARIADB_PASSWORD: osticket_secret
+    volumes:
+      - osticket-db-data:/var/lib/mysql
+    mem_limit: 512m
+    cpus: "0.3"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
 volumes:
   odoo-filestore: {}
   odoo-data: {}
   moodle-data: {}
   moodle-moodledata: {}
+  osticket-db-data: {}
