@@ -95,7 +95,7 @@ stages:
                 set -e
                 echo "=== Pulling latest code ==="
                 sudo rm -rf /home/is214/e08g10t02-odoo17
-                git clone -b master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo git clone -b master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
 # Deploy with Docker Compose
