@@ -98,7 +98,7 @@ stages:
                 rm -rf e08g10t02-odoo17
                 git clone -b master https://github.com/joczx/e08g10t02-odoo17.git e08g10t02-odoo17 2>&1
 
-          # Deploy with Docker Compose
+# Deploy with Docker Compose
           - task: SSH@0
             displayName: "Docker Compose Deploy"
             inputs:
@@ -106,12 +106,13 @@ stages:
               runOptions: commands
               commands: |
                 set -e
-                echo "=== Current user ===" 
-                whoami
-                echo "=== Checking directory ==="
-                ls /home/is214/e08g10t02-odoo17/docker-compose.yml
-                cd /home/is214/e08g10t02-odoo17
-                echo "=== PWD ==="
-                pwd
-                docker compose pull 2>&1
-                docker compose up -d 2>&1
+                echo "=== Pulling latest images ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
+
+                echo "=== Starting all services ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
+
+                echo "=== Container status ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
+                echo "=== Deploy complete ==="
