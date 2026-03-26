@@ -30,16 +30,6 @@ services:
       options:
         max-size: "50m"
         max-file: "3"
-    command: >
-      --db_host=crossover.proxy.rlwy.net
-      --db_port=10320
-      --db_user=odoo17
-      --db_password=QxAdxgCFqHshmjpqscDdwORipdGVLcqT
-      --admin-passwd=OdooMaster@2026!
-      --db_maxconn=5
-      --db_sslmode=disable
-      --proxy-mode
-      --database=Odoo17
 
  # ── Moodle 4.3.2 (Bitnami legacy pinned) ─────────────────────────────────────
   moodle:
