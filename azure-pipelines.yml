@@ -109,6 +109,9 @@ stages:
                 echo "=== Pulling latest images ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
 
+                echo "=== Stopping old containers ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml down 2>&1
+
                 echo "=== Starting all services ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
 
