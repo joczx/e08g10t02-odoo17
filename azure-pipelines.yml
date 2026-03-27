@@ -92,7 +92,8 @@ stages:
               runOptions: commands
               commands: |
                 echo "=== Stopping old containers ==="
-                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml down --remove-orphans 2>&1 || true
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml stop 2>&1 || true
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml rm -f 2>&1 || true
 
           # Pull latest code onto VM
           - task: SSH@0
