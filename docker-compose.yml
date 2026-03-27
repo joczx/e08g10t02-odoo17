@@ -107,51 +107,9 @@ services:
         max-size: "10m"
         max-file: "2"
 
-  # ── osTicket 1.18 ────────────────────────────────────────────────────────────
-  osticket:
-    image: osticket/osticket:1.18
-    container_name: osticket_app
-    restart: unless-stopped
-    ports:
-      - "8081:80"
-    depends_on:
-      - osticket-db
-    environment:
-      MYSQL_HOST: osticket-db
-      MYSQL_DATABASE: osticket
-      MYSQL_USER: osticket
-      MYSQL_PASSWORD: osticket_secret
-    mem_limit: 512m
-    cpus: "0.5"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
-  osticket-db:
-    image: mariadb:10.11
-    container_name: osticket_db
-    restart: unless-stopped
-    environment:
-      MARIADB_ROOT_PASSWORD: root_secret
-      MARIADB_DATABASE: osticket
-      MARIADB_USER: osticket
-      MARIADB_PASSWORD: osticket_secret
-    volumes:
-      - osticket-db-data:/var/lib/mysql
-    mem_limit: 512m
-    cpus: "0.3"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "3"
-
 # ── Named volumes ─────────────────────────────────────────────────────────────
 volumes:
   odoo-filestore: {}
   odoo-data: {}
   moodle-data: {}
   moodle-moodledata: {}
-  osticket-db-data: {}
