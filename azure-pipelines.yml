@@ -186,9 +186,9 @@ stages:
               commands: |
                 set -e
                 echo "=== Pulling latest code ==="
-                sudo rm -rf /home/is214/e08g10t02-odoo17
-                sudo git clone -b monitoring-staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
-                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+                sudo -n rm -rf /home/is214/e08g10t02-odoo17
+                sudo -n git clone -b monitoring-staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo -n chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
             displayName: "Docker Compose Deploy"
