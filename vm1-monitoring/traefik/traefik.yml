@@ -9,7 +9,7 @@ entryPoints:
   websecure:
     address: ":443"
   traefik:
-    address: ":8081"
+    address: "127.0.0.1:8081"
 
 api:
   dashboard: true
