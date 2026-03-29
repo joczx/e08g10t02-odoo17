@@ -207,12 +207,12 @@ stages:
                 cd /home/is214/e08g10t02-odoo17/vm1-monitoring
 
                 echo "=== Pulling latest images ==="
-                docker compose -f docker-compose.monitoring.yml pull 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml pull 2>&1
 
                 echo "=== Starting all services ==="
-                docker compose -f docker-compose.monitoring.yml up -d 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml up -d 2>&1
 
                 echo "=== Container status ==="
-                docker compose -f docker-compose.monitoring.yml ps 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml ps 2>&1
 
                 echo "=== Deploy complete ==="
