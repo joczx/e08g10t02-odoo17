@@ -184,6 +184,13 @@ stages:
               sshEndpoint: 'ssh-monitoring-staging'
               runOptions: commands
               commands: |
+                set -x
+                hostname
+                hostname -f || true
+                whoami
+                id
+                sudo -l
+                pwd
                 set -e
                 echo "=== Pulling latest code ==="
                 sudo -n rm -rf /home/is214/e08g10t02-odoo17
