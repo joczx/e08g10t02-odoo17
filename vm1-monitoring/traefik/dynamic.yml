@@ -1,25 +1,36 @@
 http:
   routers:
     odoo-router:
-      rule: "PathPrefix(`/`)"
+      rule: "Host(`odoo.esmoshealth.me`)"
       entryPoints:
-        - odoo
+        - websecure
       service: odoo-loadbalancer
+      tls:
+        certResolver: letsencrypt
     moodle-router:
-      rule: "PathPrefix(`/`)"
+      rule: "Host(`moodle.esmoshealth.me`)"
       entryPoints:
-        - moodle
+        - websecure
       service: moodle-loadbalancer
+      tls:
+        certResolver: letsencrypt
+    traefik-dashboard:
+      rule: "Host(`traefik.esmoshealth.me`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls:
+        certResolver: letsencrypt
+
   services:
     odoo-loadbalancer:
       loadBalancer:
         sticky:
           cookie:
             name: odoo_sticky
-            secure: false
+            secure: true
         servers:
-          - url: "http://10.0.0.4:8069"
-          - url: "http://<VM3_PRIVATE_IP>:8069"
+          - url: "http://172.18.0.4:8069"
         healthCheck:
           path: /web/health
           interval: 10s
@@ -29,10 +40,9 @@ http:
         sticky:
           cookie:
             name: moodle_sticky
-            secure: false
+            secure: true
         servers:
-          - url: "http://10.0.0.4:8080"
-          - url: "http://<VM3_PRIVATE_IP>:8080"
+          - url: "http://172.18.0.4:8080"
         healthCheck:
           path: /login/index.php
           interval: 10s

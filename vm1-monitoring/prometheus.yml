@@ -7,30 +7,19 @@ remote_write:
     basic_auth:
       username: 3069868
       password: glc_eyJvIjoiMTcxMTg1OSIsIm4iOiJzdGFjay0xNTcyODIwLWFsbG95LWVzbW9zLXByb21ldGhldXMiLCJlIjoicHR0cHM6Ly9wcm9tZXRoZXVzLXByb2QtMzctcHJvZC1hcC1zb3V0aGVhc3QtMS5ncmFmYW5hLm5ldC9hcGkvcHJvbS9wdXNoIiwidiI6MSwic3QiOiJzdGFjayIsImsiOiJlc21vc1Byb21ldGhldXMiLCJhIjoiMTc3NDUxMjQ0NjIxOTk4OSJ9
+
 scrape_configs:
   - job_name: 'odoo-vm2'
     static_configs:
-      - targets: ['52.184.80.14:8069']
+      - targets: ['172.18.0.4:8069']
         labels:
           vm: 'vm2'
-          app: 'odoo'
-  - job_name: 'odoo-vm3'
-    static_configs:
-      - targets: ['20.189.114.223:8069']
-        labels:
-          vm: 'vm3'
           app: 'odoo'
   - job_name: 'moodle-vm2'
     static_configs:
-      - targets: ['52.184.80.14:8080']
+      - targets: ['172.18.0.4:8080']
         labels:
           vm: 'vm2'
-          app: 'moodle'
-  - job_name: 'moodle-vm3'
-    static_configs:
-      - targets: ['20.189.114.223:8080']
-        labels:
-          vm: 'vm3'
           app: 'moodle'
   - job_name: 'traefik'
     static_configs:
