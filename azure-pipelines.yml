@@ -3,6 +3,7 @@ trigger:
     include:
       - Staging
       - master
+      - monitoring
 
 pool:
   name: Default
@@ -84,7 +85,6 @@ stages:
         deploy:
           steps:
 
-          # Stop old containers first (before removing code)
           - task: SSH@0
             displayName: "Stop Old Containers"
             inputs:
@@ -95,7 +95,6 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml stop 2>&1 || true
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml rm -f 2>&1 || true
 
-          # Pull latest code onto VM
           - task: SSH@0
             displayName: "Pull Latest Code"
             inputs:
@@ -108,7 +107,6 @@ stages:
                 sudo git clone -b master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
-          # Write .env file from pipeline secrets
           - task: SSH@0
             displayName: "Write Environment File"
             inputs:
@@ -136,7 +134,6 @@ stages:
                 echo "MOODLE_SKIP_BOOTSTRAP=$(MOODLE_SKIP_BOOTSTRAP)" >> /home/is214/e08g10t02-odoo17/.env
                 chmod 600 /home/is214/e08g10t02-odoo17/.env
 
-          # Deploy with Docker Compose
           - task: SSH@0
             displayName: "Docker Compose Deploy"
             inputs:
@@ -152,5 +149,63 @@ stages:
 
                 echo "=== Container status ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
+                echo "=== Deploy complete ==="
+
+
+# =========================
+# MONITORING STAGE
+# =========================
+- stage: Monitoring
+  displayName: Deploy Monitoring (Traefik + Prometheus)
+  condition: eq(variables['Build.SourceBranchName'], 'monitoring')
+
+  jobs:
+  - deployment: DeployMonitoring
+    environment: Production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+
+          - task: SSH@0
+            displayName: "Stop Old Containers"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-vm'
+              runOptions: commands
+              commands: |
+                echo "=== Stopping old containers ==="
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml stop 2>&1 || true
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml rm -f 2>&1 || true
+
+          - task: SSH@0
+            displayName: "Pull Latest Code"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-vm'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "=== Pulling latest code ==="
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b monitoring https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+
+          - task: SSH@0
+            displayName: "Docker Compose Deploy"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-vm'
+              runOptions: commands
+              commands: |
+                set -e
+                cd /home/is214/e08g10t02-odoo17/vm1-monitoring
+
+                echo "=== Pulling latest images ==="
+                sudo docker compose -f docker-compose.monitoring.yml pull 2>&1
+
+                echo "=== Starting all services ==="
+                sudo docker compose -f docker-compose.monitoring.yml up -d 2>&1
+
+                echo "=== Container status ==="
+                sudo docker compose -f docker-compose.monitoring.yml ps 2>&1
 
                 echo "=== Deploy complete ==="
