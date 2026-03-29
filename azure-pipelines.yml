@@ -3,7 +3,7 @@ trigger:
     include:
       - Staging
       - master
-      - monitoring
+      - monitoring-staging
 
 pool:
   name: Default
@@ -158,7 +158,7 @@ stages:
 # =========================
 - stage: Monitoring
   displayName: Deploy Monitoring (Traefik + Prometheus)
-  condition: eq(variables['Build.SourceBranchName'], 'monitoring')
+  condition: eq(variables['Build.SourceBranchName'], 'monitoring-staging')
 
   jobs:
   - deployment: DeployMonitoring
@@ -187,7 +187,7 @@ stages:
                 set -e
                 echo "=== Pulling latest code ==="
                 sudo rm -rf /home/is214/e08g10t02-odoo17
-                sudo git clone -b monitoring https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo git clone -b monitoring-staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
