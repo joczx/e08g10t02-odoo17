@@ -171,7 +171,7 @@ stages:
           - task: SSH@0
             displayName: "Stop Old Containers"
             inputs:
-              sshEndpoint: 'ssh-monitoring-vm'
+              sshEndpoint: 'ssh-monitoring-staging'
               runOptions: commands
               commands: |
                 echo "=== Stopping old containers ==="
@@ -181,7 +181,7 @@ stages:
           - task: SSH@0
             displayName: "Pull Latest Code"
             inputs:
-              sshEndpoint: 'ssh-monitoring-vm'
+              sshEndpoint: 'ssh-monitoring-staging'
               runOptions: commands
               commands: |
                 set -e
@@ -193,7 +193,7 @@ stages:
           - task: SSH@0
             displayName: "Docker Compose Deploy"
             inputs:
-              sshEndpoint: 'ssh-monitoring-vm'
+              sshEndpoint: 'ssh-monitoring-staging'
               runOptions: commands
               commands: |
                 set -e
