@@ -397,6 +397,6 @@ stages:
               commands: |
                 set -e
                 cd /home/is214/e08g10t02-odoo17/vm1-monitoring
-                sudo docker compose -f docker-compose.monitoring.yml pull 2>&1
-                sudo docker compose -f docker-compose.monitoring.yml up -d 2>&1
-                sudo docker compose -f docker-compose.monitoring.yml ps 2>&1
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml pull 2>&1
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml up -d 2>&1
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml ps 2>&1
