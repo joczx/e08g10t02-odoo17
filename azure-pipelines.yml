@@ -2,8 +2,11 @@ trigger:
   branches:
     include:
       - Staging
-      - master
+      - Staging-vm2
+      - master-vm2
+      - master-vm3
       - monitoring-staging
+      - monitoring-master
 
 pool:
   name: Default
@@ -17,74 +20,91 @@ variables:
 stages:
 
 # =========================
-# STAGING STAGE
+# STAGING - VM3
 # =========================
-
-- stage: Staging
-  displayName: Deploy to Staging
+- stage: StagingVM3
+  displayName: Deploy to VM3 (Staging)
   condition: eq(variables['Build.SourceBranchName'], 'Staging')
 
   jobs:
-  - deployment: DeployStaging
+  - deployment: DeployStagingVM3
     environment: Staging
     strategy:
       runOnce:
         deploy:
           steps:
+          - task: SSH@0
+            displayName: "Stop Old Containers"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-staging'
+              runOptions: commands
+              commands: |
+                echo "=== Stopping old containers ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml stop 2>&1 || true
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml rm -f 2>&1 || true
 
           - task: SSH@0
-            displayName: "Sync Code - Staging"
+            displayName: "Pull Latest Code"
             inputs:
               sshEndpoint: 'ssh-odoo17-staging'
               runOptions: commands
               commands: |
                 set -e
-                echo "Deploying branch: $(Build.SourceBranchName)"
-                cd $(stagePath)
-                rm -rf deploy-temp odoo17 *-odoo17
-
-                git clone -b Staging $(repoUrl) deploy-temp --quiet
-
-                cd deploy-temp
-                rm -f .DS_Store
-                rm -rf .github
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b Staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
-            displayName: "Debug - Cat script on server"
+            displayName: "Write Environment File"
             inputs:
               sshEndpoint: 'ssh-odoo17-staging'
               runOptions: commands
               commands: |
-                echo "=== Script content ==="
-                cat /home/is214/deploy-temp/update_code.sh
-                echo "=== Running as user ==="
-                whoami
+                set -e
+                echo "ODOO_PG_HOST=$(ODOO_PG_HOST)" > /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PORT=$(ODOO_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_USER=$(ODOO_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PASSWORD=$(ODOO_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_DB=$(ODOO_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_HOST=$(MOODLE_PG_HOST)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PORT=$(MOODLE_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_USER=$(MOODLE_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PASSWORD=$(MOODLE_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_DB=$(MOODLE_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_SCHEMA=$(MOODLE_PG_SCHEMA)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_USERNAME=$(MOODLE_USERNAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PASSWORD=$(MOODLE_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_EMAIL=$(MOODLE_EMAIL)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
+                chmod 600 /home/is214/e08g10t02-odoo17/.env
 
           - task: SSH@0
-            displayName: "Run Update Script - Staging"
+            displayName: "Docker Compose Deploy"
             inputs:
               sshEndpoint: 'ssh-odoo17-staging'
               runOptions: commands
               commands: |
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(updateScript)
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(updateScript)
-
+                set -e
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
 
 # =========================
-# PRODUCTION STAGE (Docker)
+# STAGING - VM2
 # =========================
-- stage: Production
-  displayName: Deploy to Production (Docker)
-  condition: eq(variables['Build.SourceBranchName'], 'master')
+- stage: StagingVM2
+  displayName: Deploy to VM2 (Staging)
+  condition: eq(variables['Build.SourceBranchName'], 'Staging-vm2')
 
   jobs:
-  - deployment: DeployProduction
-    environment: Production
+  - deployment: DeployStagingVM2
+    environment: Staging
     strategy:
       runOnce:
         deploy:
           steps:
-
           - task: SSH@0
             displayName: "Stop Old Containers"
             inputs:
@@ -102,9 +122,8 @@ stages:
               runOptions: commands
               commands: |
                 set -e
-                echo "=== Pulling latest code ==="
                 sudo rm -rf /home/is214/e08g10t02-odoo17
-                sudo git clone -b master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo git clone -b Staging-vm2 https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
@@ -114,7 +133,6 @@ stages:
               runOptions: commands
               commands: |
                 set -e
-                echo "=== Writing .env file ==="
                 echo "ODOO_PG_HOST=$(ODOO_PG_HOST)" > /home/is214/e08g10t02-odoo17/.env
                 echo "ODOO_PG_PORT=$(ODOO_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "ODOO_PG_USER=$(ODOO_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
@@ -131,7 +149,7 @@ stages:
                 echo "MOODLE_EMAIL=$(MOODLE_EMAIL)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
-                echo "MOODLE_SKIP_BOOTSTRAP=$(MOODLE_SKIP_BOOTSTRAP)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
                 chmod 600 /home/is214/e08g10t02-odoo17/.env
 
           - task: SSH@0
@@ -141,33 +159,168 @@ stages:
               runOptions: commands
               commands: |
                 set -e
-                echo "=== Pulling latest images ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
-
-                echo "=== Starting all services ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
-
-                echo "=== Container status ==="
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
 
-                echo "=== Deploy complete ==="
-
-
 # =========================
-# MONITORING STAGE
+# PRODUCTION - VM2
 # =========================
-- stage: Monitoring
-  displayName: Deploy Monitoring (Traefik + Prometheus)
-  condition: eq(variables['Build.SourceBranchName'], 'monitoring-staging')
+- stage: ProductionVM2
+  displayName: Deploy to VM2 (Production)
+  condition: eq(variables['Build.SourceBranchName'], 'master-vm2')
 
   jobs:
-  - deployment: DeployMonitoring
+  - deployment: DeployProductionVM2
     environment: Production
     strategy:
       runOnce:
         deploy:
           steps:
+          - task: SSH@0
+            displayName: "Stop Old Containers"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                echo "=== Stopping old containers ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml stop 2>&1 || true
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml rm -f 2>&1 || true
 
+          - task: SSH@0
+            displayName: "Pull Latest Code"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                set -e
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b master-vm2 https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+
+          - task: SSH@0
+            displayName: "Write Environment File"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "ODOO_PG_HOST=$(ODOO_PG_HOST)" > /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PORT=$(ODOO_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_USER=$(ODOO_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PASSWORD=$(ODOO_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_DB=$(ODOO_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_HOST=$(MOODLE_PG_HOST)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PORT=$(MOODLE_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_USER=$(MOODLE_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PASSWORD=$(MOODLE_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_DB=$(MOODLE_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_SCHEMA=$(MOODLE_PG_SCHEMA)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_USERNAME=$(MOODLE_USERNAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PASSWORD=$(MOODLE_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_EMAIL=$(MOODLE_EMAIL)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
+                chmod 600 /home/is214/e08g10t02-odoo17/.env
+
+          - task: SSH@0
+            displayName: "Docker Compose Deploy"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                set -e
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
+# =========================
+# PRODUCTION - VM3
+# =========================
+- stage: ProductionVM3
+  displayName: Deploy to VM3 (Production)
+  condition: eq(variables['Build.SourceBranchName'], 'master-vm3')
+
+  jobs:
+  - deployment: DeployProductionVM3
+    environment: Production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            displayName: "Stop Old Containers"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                echo "=== Stopping old containers ==="
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml stop 2>&1 || true
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml rm -f 2>&1 || true
+
+          - task: SSH@0
+            displayName: "Pull Latest Code"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                set -e
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b master-vm3 https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+
+          - task: SSH@0
+            displayName: "Write Environment File"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "ODOO_PG_HOST=$(ODOO_PG_HOST)" > /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PORT=$(ODOO_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_USER=$(ODOO_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_PASSWORD=$(ODOO_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "ODOO_PG_DB=$(ODOO_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_HOST=$(MOODLE_PG_HOST)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PORT=$(MOODLE_PG_PORT)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_USER=$(MOODLE_PG_USER)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_PASSWORD=$(MOODLE_PG_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_DB=$(MOODLE_PG_DB)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PG_SCHEMA=$(MOODLE_PG_SCHEMA)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_USERNAME=$(MOODLE_USERNAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_PASSWORD=$(MOODLE_PASSWORD)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_EMAIL=$(MOODLE_EMAIL)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
+                chmod 600 /home/is214/e08g10t02-odoo17/.env
+
+          - task: SSH@0
+            displayName: "Docker Compose Deploy"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                set -e
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
+                docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
+# =========================
+# MONITORING - STAGING (VM1)
+# =========================
+- stage: MonitoringStaging
+  displayName: Deploy Monitoring Staging (Traefik + Prometheus)
+  condition: eq(variables['Build.SourceBranchName'], 'monitoring-staging')
+
+  jobs:
+  - deployment: DeployMonitoringStaging
+    environment: Staging
+    strategy:
+      runOnce:
+        deploy:
+          steps:
           - task: SSH@0
             displayName: "Stop Old Containers"
             inputs:
@@ -184,18 +337,10 @@ stages:
               sshEndpoint: 'ssh-monitoring-staging'
               runOptions: commands
               commands: |
-                set -x
-                hostname
-                hostname -f || true
-                whoami
-                id
-                sudo -l
-                pwd
                 set -e
-                echo "=== Pulling latest code ==="
-                rm -rf /home/is214/e08g10t02-odoo17
-                git clone -b monitoring-staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
-                chown -R is214:is214 /home/is214/e08g10t02-odoo17
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b monitoring-staging https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
             displayName: "Docker Compose Deploy"
@@ -205,14 +350,53 @@ stages:
               commands: |
                 set -e
                 cd /home/is214/e08g10t02-odoo17/vm1-monitoring
+                sudo docker compose -f docker-compose.monitoring.yml pull 2>&1
+                sudo docker compose -f docker-compose.monitoring.yml up -d 2>&1
+                sudo docker compose -f docker-compose.monitoring.yml ps 2>&1
 
-                echo "=== Pulling latest images ==="
-                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml pull 2>&1
+# =========================
+# MONITORING - PRODUCTION (VM1)
+# =========================
+- stage: MonitoringProduction
+  displayName: Deploy Monitoring Production (Traefik + Prometheus)
+  condition: eq(variables['Build.SourceBranchName'], 'monitoring-master')
 
-                echo "=== Starting all services ==="
-                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml up -d 2>&1
+  jobs:
+  - deployment: DeployMonitoringProduction
+    environment: Production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: SSH@0
+            displayName: "Stop Old Containers"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-production'
+              runOptions: commands
+              commands: |
+                echo "=== Stopping old containers ==="
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml stop 2>&1 || true
+                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml rm -f 2>&1 || true
 
-                echo "=== Container status ==="
-                sudo docker compose -f /home/is214/e08g10t02-odoo17/vm1-monitoring/docker-compose.monitoring.yml ps 2>&1
+          - task: SSH@0
+            displayName: "Pull Latest Code"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-production'
+              runOptions: commands
+              commands: |
+                set -e
+                sudo rm -rf /home/is214/e08g10t02-odoo17
+                sudo git clone -b monitoring-master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
+                sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
-                echo "=== Deploy complete ==="
+          - task: SSH@0
+            displayName: "Docker Compose Deploy"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-production'
+              runOptions: commands
+              commands: |
+                set -e
+                cd /home/is214/e08g10t02-odoo17/vm1-monitoring
+                sudo docker compose -f docker-compose.monitoring.yml pull 2>&1
+                sudo docker compose -f docker-compose.monitoring.yml up -d 2>&1
+                sudo docker compose -f docker-compose.monitoring.yml ps 2>&1
