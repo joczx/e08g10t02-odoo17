@@ -29,7 +29,7 @@ http:
         sticky:
           cookie:
             name: moodle_sticky
-            secure: false
+            secure: true
         servers:
           - url: "http://10.0.0.4:8080"
           - url: "http://<VM3_PRIVATE_IP>:8080"
