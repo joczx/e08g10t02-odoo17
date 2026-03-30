@@ -222,6 +222,9 @@ stages:
                 echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_HOST=moodle.esmoshealth.me" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_REVERSEPROXY=yes" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SSLPROXY=yes" >> /home/is214/e08g10t02-odoo17/.env
                 chmod 600 /home/is214/e08g10t02-odoo17/.env
 
           - task: SSH@0
@@ -294,6 +297,9 @@ stages:
                 echo "MOODLE_SITE_NAME=$(MOODLE_SITE_NAME)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "VM_PUBLIC_IP=$(VM_PUBLIC_IP)" >> /home/is214/e08g10t02-odoo17/.env
                 echo "MOODLE_SKIP_BOOTSTRAP=yes" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_HOST=moodle.esmoshealth.me" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_REVERSEPROXY=yes" >> /home/is214/e08g10t02-odoo17/.env
+                echo "MOODLE_SSLPROXY=yes" >> /home/is214/e08g10t02-odoo17/.env
                 chmod 600 /home/is214/e08g10t02-odoo17/.env
 
           - task: SSH@0
