@@ -19,7 +19,7 @@ services:
     volumes:
       - ./addons:/mnt/extra-addons
       - ./odoo.conf:/etc/odoo/odoo.conf
-      - odoo-filestore:/var/lib/odoo/filestore
+      - odoo-filestore:/var/lib/odoo
       - odoo-data:/var/lib/odoo
     mem_limit: 1536m
     cpus: "1.0"
