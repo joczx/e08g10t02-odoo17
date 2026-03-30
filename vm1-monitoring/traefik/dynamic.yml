@@ -47,3 +47,4 @@ http:
           path: /login/index.php
           interval: 10s
           timeout: 3s
+          followRedirects: false
