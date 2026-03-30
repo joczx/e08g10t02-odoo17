@@ -20,8 +20,7 @@ certificatesResolvers:
     acme:
       email: admin@esmoshealth.me
       storage: /etc/traefik/acme.json
-      httpChallenge:
-        entryPoint: web
+      tlsChallenge: {}
 
 providers:
   file:
