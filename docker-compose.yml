@@ -49,9 +49,9 @@ services:
       MOODLE_PASSWORD:   ${MOODLE_PASSWORD}
       MOODLE_EMAIL:      ${MOODLE_EMAIL}
       MOODLE_SITE_NAME:  "${MOODLE_SITE_NAME}"
-      MOODLE_HOST: "${VM_PUBLIC_IP}:8080"
-      MOODLE_REVERSEPROXY: "no"
-      MOODLE_SSLPROXY:     "no"
+      MOODLE_HOST: "moodle.esmoshealth.me"
+      MOODLE_REVERSEPROXY: "yes"
+      MOODLE_SSLPROXY:     "yes"
       MOODLE_SKIP_BOOTSTRAP: "${MOODLE_SKIP_BOOTSTRAP}"
       MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=disable"
       PHP_MEMORY_LIMIT: "256M"
