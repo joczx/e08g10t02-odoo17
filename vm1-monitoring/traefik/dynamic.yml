@@ -31,6 +31,7 @@ http:
             secure: true
         servers:
           - url: "http://172.18.0.4:8069"
+          - url: "http://172.16.0.4:8069"
         healthCheck:
           path: /web/health
           interval: 10s
@@ -43,6 +44,7 @@ http:
             secure: true
         servers:
           - url: "http://172.18.0.4:8080"
+          - url: "http://172.16.0.4:8080"
         healthCheck:
           path: /login/index.php
           interval: 10s
