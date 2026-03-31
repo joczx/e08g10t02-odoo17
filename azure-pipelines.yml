@@ -90,6 +90,26 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+          - task: SSH@0
+            displayName: "Post-Deploy Moodle Fixes"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-staging'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "=== Waiting for Moodle to start ==="
+                sleep 30
+                echo "=== Fixing Moodle SSL and permissions ==="
+                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker restart moodle_app
+                sleep 10
+                echo "=== Verifying Moodle ==="
+                docker logs moodle_app --tail 5
+                echo "=== Post-deploy complete ==="
 
 # =========================
 # STAGING - VM2
@@ -162,6 +182,26 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+          - task: SSH@0
+            displayName: "Post-Deploy Moodle Fixes"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "=== Waiting for Moodle to start ==="
+                sleep 30
+                echo "=== Fixing Moodle SSL and permissions ==="
+                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker restart moodle_app
+                sleep 10
+                echo "=== Verifying Moodle ==="
+                docker logs moodle_app --tail 5
+                echo "=== Post-deploy complete ==="
 
 # =========================
 # PRODUCTION - VM2
@@ -237,6 +277,26 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+          - task: SSH@0
+            displayName: "Post-Deploy Moodle Fixes"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "=== Waiting for Moodle to start ==="
+                sleep 30
+                echo "=== Fixing Moodle SSL and permissions ==="
+                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker restart moodle_app
+                sleep 10
+                echo "=== Verifying Moodle ==="
+                docker logs moodle_app --tail 5
+                echo "=== Post-deploy complete ==="
 
 # =========================
 # PRODUCTION - VM3
@@ -312,6 +372,26 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+          - task: SSH@0
+            displayName: "Post-Deploy Moodle Fixes"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                set -e
+                echo "=== Waiting for Moodle to start ==="
+                sleep 30
+                echo "=== Fixing Moodle SSL and permissions ==="
+                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
+                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker restart moodle_app
+                sleep 10
+                echo "=== Verifying Moodle ==="
+                docker logs moodle_app --tail 5
+                echo "=== Post-deploy complete ==="
 
 # =========================
 # MONITORING - STAGING (VM1)
