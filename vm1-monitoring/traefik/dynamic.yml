@@ -12,8 +12,6 @@ http:
       entryPoints:
         - websecure
       service: moodle-loadbalancer
-      middlewares:
-        - moodle-headers
       tls:
         certResolver: letsencrypt
     traefik-dashboard:
@@ -23,14 +21,6 @@ http:
       service: api@internal
       tls:
         certResolver: letsencrypt
-
-  middlewares:
-    moodle-headers:
-      headers:
-        customRequestHeaders:
-          X-Forwarded-Proto: "https"
-          X-Forwarded-Host: "moodle.esmoshealth.me"
-          X-Forwarded-Port: "443"
 
   services:
     odoo-loadbalancer:
@@ -48,6 +38,7 @@ http:
           timeout: 3s
     moodle-loadbalancer:
       loadBalancer:
+        passHostHeader: false
         sticky:
           cookie:
             name: moodle_sticky
