@@ -82,8 +82,8 @@ services:
       MOODLE_DATABASE_PASSWORD: ${MOODLE_PG_PASSWORD}
       MOODLE_DATABASE_NAME: ${MOODLE_PG_DB}
       MOODLE_DATABASE_SCHEMA: ${MOODLE_PG_SCHEMA}
-      MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=disable"
-      MOODLE_SKIP_BOOTSTRAP: "yes"
+      MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=require"
+      MOODLE_SKIP_BOOTSTRAP: "no"
       PHP_MEMORY_LIMIT: "128M"
     volumes:
       - moodle-data:/bitnami/moodle
