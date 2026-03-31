@@ -108,7 +108,7 @@ stages:
                 docker restart moodle_app
                 sleep 10
                 echo "=== Verifying Moodle ==="
-                docker logs moodle_app --tail 5
+                docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
 
 # =========================
@@ -200,7 +200,7 @@ stages:
                 docker restart moodle_app
                 sleep 10
                 echo "=== Verifying Moodle ==="
-                docker logs moodle_app --tail 5
+                docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
 
 # =========================
@@ -295,7 +295,7 @@ stages:
                 docker restart moodle_app
                 sleep 10
                 echo "=== Verifying Moodle ==="
-                docker logs moodle_app --tail 5
+                docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
 
 # =========================
@@ -390,7 +390,7 @@ stages:
                 docker restart moodle_app
                 sleep 10
                 echo "=== Verifying Moodle ==="
-                docker logs moodle_app --tail 5
+                docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
 
 # =========================
