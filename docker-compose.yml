@@ -52,7 +52,7 @@ services:
       MOODLE_HOST: "moodle.esmoshealth.me"
       MOODLE_REVERSEPROXY: "yes"
       MOODLE_SSLPROXY:     "yes"
-      MOODLE_SKIP_BOOTSTRAP: "no"
+      MOODLE_SKIP_BOOTSTRAP: "yes"
       MOODLE_DATABASE_EXTRA_FLAGS: "--sslmode=require"
       PHP_MEMORY_LIMIT: "256M"
       PHP_MAX_EXECUTION_TIME: "300"
