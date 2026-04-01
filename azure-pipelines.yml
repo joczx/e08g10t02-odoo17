@@ -104,9 +104,14 @@ stages:
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
                 docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
-                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
+                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.0.6' >> /opt/bitnami/apache/conf/httpd.conf"
                 docker restart moodle_app
                 sleep 10
+                echo "=== Fixing Odoo base URL ==="
+                docker exec odoo_app bash -c "echo \"env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://odoo.esmoshealth.me'); env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')]).unlink(); env.cr.commit()\" | odoo shell -d ESMSOS --no-http 2>&1" || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
@@ -196,9 +201,14 @@ stages:
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
                 docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
-                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
+                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.0.6' >> /opt/bitnami/apache/conf/httpd.conf"
                 docker restart moodle_app
                 sleep 10
+                echo "=== Fixing Odoo base URL ==="
+                docker exec odoo_app bash -c "echo \"env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://odoo.esmoshealth.me'); env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')]).unlink(); env.cr.commit()\" | odoo shell -d ESMSOS --no-http 2>&1" || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
@@ -291,9 +301,14 @@ stages:
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
                 docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
-                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
+                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.1.4' >> /opt/bitnami/apache/conf/httpd.conf"
                 docker restart moodle_app
                 sleep 10
+                echo "=== Fixing Odoo base URL ==="
+                docker exec odoo_app bash -c "echo \"env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://odoo.esmoshealth.me'); env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')]).unlink(); env.cr.commit()\" | odoo shell -d ESMSOS --no-http 2>&1" || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
@@ -386,9 +401,14 @@ stages:
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
                 docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
-                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
+                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.1.4' >> /opt/bitnami/apache/conf/httpd.conf"
                 docker restart moodle_app
                 sleep 10
+                echo "=== Fixing Odoo base URL ==="
+                docker exec odoo_app bash -c "echo \"env['ir.config_parameter'].sudo().set_param('web.base.url', 'https://odoo.esmoshealth.me'); env['ir.attachment'].sudo().search([('url', 'like', '/web/assets/')]).unlink(); env.cr.commit()\" | odoo shell -d ESMSOS --no-http 2>&1" || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
