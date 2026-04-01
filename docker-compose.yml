@@ -109,7 +109,6 @@ services:
 
 # ── Named volumes ─────────────────────────────────────────────────────────────
 volumes:
-  odoo-filestore: {}
   odoo-data: {}
   moodle-data: {}
   moodle-moodledata: {}
