@@ -200,7 +200,7 @@ stages:
                 docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
-                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|$(MOODLE_PG_HOST)|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
                 docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
                 docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
@@ -313,7 +313,7 @@ stages:
                 docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql" || true
-                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|$(MOODLE_PG_HOST)|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf" || true
                 docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf" || true
@@ -428,7 +428,7 @@ stages:
                 docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql" || true
-                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|$(MOODLE_PG_HOST)|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php" || true
                 docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf" || true
                 docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf" || true
