@@ -15,6 +15,10 @@ api:
   dashboard: true
   insecure: true
 
+metrics:
+  prometheus:
+    entryPoint: "traefik"
+
 certificatesResolvers:
   letsencrypt:
     acme:
@@ -29,3 +33,6 @@ providers:
 
 log:
   level: INFO
+
+accessLog:
+  filePath: "/var/log/traefik/access.log"

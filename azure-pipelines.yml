@@ -388,6 +388,25 @@ stages:
                 sudo rm -rf /home/is214/e08g10t02-odoo17
                 sudo git clone -b monitoring-master https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+                
+          - task: SSH@0
+            displayName: "Write Prometheus Config"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-production'
+              runOptions: commands
+              commands: |
+                set -e
+                sed -i "s|GRAFANA_REMOTE_WRITE_URL|$(GRAFANA_REMOTE_WRITE_URL)|" /home/is214/e08g10t02-odoo17/vm1-monitoring/prometheus.yml
+                sed -i "s|GRAFANA_USERNAME|$(GRAFANA_USERNAME)|" /home/is214/e08g10t02-odoo17/vm1-monitoring/prometheus.yml
+                sed -i "s|GRAFANA_PASSWORD|$(GRAFANA_PASSWORD)|" /home/is214/e08g10t02-odoo17/vm1-monitoring/prometheus.yml
+
+          - task: SSH@0
+            displayName: "Create Log Directory"
+            inputs:
+              sshEndpoint: 'ssh-monitoring-production'
+              runOptions: commands
+              commands: |
+                sudo mkdir -p /var/log/traefik
 
           - task: SSH@0
             displayName: "Docker Compose Deploy"
