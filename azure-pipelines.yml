@@ -287,28 +287,31 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
           - task: SSH@0
-            displayName: "Post-Deploy Moodle Fixes"
+            displayName: "Post-Deploy Fixes"
+            timeoutInMinutes: 5
             inputs:
               sshEndpoint: 'ssh-odoo17-production-vm2'
               runOptions: commands
               commands: |
-                set -e
                 echo "=== Waiting for Moodle to start ==="
                 sleep 30
                 echo "=== Fixing Moodle SSL and permissions ==="
-                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php"
-                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php"
-                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql"
-                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php 2>/dev/null || true"
-                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php 2>/dev/null || true"      
-                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf"
-                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf"
-                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.1.4' >> /opt/bitnami/apache/conf/httpd.conf"
+                docker exec moodle_app bash -c "sed -i '/dbsslmode/d' /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "sed -i \"s|'dbsocket' => '',|'dbsocket' => '',\n  'dbsslmode' => 'require',|\" /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "chmod 755 /root && mkdir -p /root/.postgresql && chmod 755 /root/.postgresql" || true
+                docker exec moodle_app bash -c "sed -i \"s|gondola.proxy.rlwy.net|odoo-db-azure.postgres.database.azure.com|\" /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "sed -i \"s|'dbport' => 17343|'dbport' => 5432|\" /bitnami/moodle/config.php" || true
+                docker exec moodle_app bash -c "sed -i 's|#LoadModule remoteip_module modules/mod_remoteip.so|LoadModule remoteip_module modules/mod_remoteip.so|' /opt/bitnami/apache/conf/httpd.conf" || true
+                docker exec moodle_app bash -c "grep -q 'RemoteIPHeader' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPHeader X-Forwarded-For' >> /opt/bitnami/apache/conf/httpd.conf" || true
+                docker exec moodle_app bash -c "grep -q 'RemoteIPTrustedProxy' /opt/bitnami/apache/conf/httpd.conf || echo 'RemoteIPTrustedProxy 10.0.1.4' >> /opt/bitnami/apache/conf/httpd.conf" || true
                 docker restart moodle_app
                 sleep 10
                 echo "=== Fixing Odoo base URL ==="
                 docker exec odoo_app bash -c 'printf "env[\"ir.config_parameter\"].sudo().set_param(\"web.base.url\", \"https://odoo.esmoshealth.me\")\nenv[\"ir.attachment\"].sudo().search([(\"url\", \"like\", \"/web/assets/\")]).unlink()\nenv.cr.commit()\n" | odoo shell -d ESMSOS --no-http 2>&1' || true
+                echo "=== Ensuring node-exporter is running ==="
+                docker start node-exporter 2>/dev/null || docker run -d --name node-exporter --restart=unless-stopped --net="host" --pid="host" -v "/:/host:ro,rslave" quay.io/prometheus/node-exporter:latest --path.rootfs=/host || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
@@ -387,11 +390,12 @@ stages:
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml pull 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml up -d 2>&1
                 docker compose -f /home/is214/e08g10t02-odoo17/docker-compose.yml ps 2>&1
+
           - task: SSH@0
-            displayName: "Post-Deploy Moodle Fixes"
+            displayName: "Post-Deploy Fixes"
             timeoutInMinutes: 5
             inputs:
-              sshEndpoint: 'ssh-odoo17-production-vm2'
+              sshEndpoint: 'ssh-odoo17-production-vm3'
               runOptions: commands
               commands: |
                 echo "=== Waiting for Moodle to start ==="
@@ -409,6 +413,8 @@ stages:
                 sleep 10
                 echo "=== Fixing Odoo base URL ==="
                 docker exec odoo_app bash -c 'printf "env[\"ir.config_parameter\"].sudo().set_param(\"web.base.url\", \"https://odoo.esmoshealth.me\")\nenv[\"ir.attachment\"].sudo().search([(\"url\", \"like\", \"/web/assets/\")]).unlink()\nenv.cr.commit()\n" | odoo shell -d ESMSOS --no-http 2>&1' || true
+                echo "=== Ensuring node-exporter is running ==="
+                docker start node-exporter 2>/dev/null || docker run -d --name node-exporter --restart=unless-stopped --net="host" --pid="host" -v "/:/host:ro,rslave" quay.io/prometheus/node-exporter:latest --path.rootfs=/host || true
                 echo "=== Verifying Moodle ==="
                 docker logs moodle_app --tail 5 2>&1 || true
                 echo "=== Post-deploy complete ==="
