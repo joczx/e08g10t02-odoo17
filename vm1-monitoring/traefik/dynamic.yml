@@ -34,14 +34,14 @@ http:
   #      average: 60
   #      burst: 120
   #      period: 1s
-    security-headers:
-      headers:
-        customResponseHeaders:
-          X-Frame-Options: "SAMEORIGIN"
-          X-Content-Type-Options: "nosniff"
-          X-XSS-Protection: "1; mode=block"
-          Referrer-Policy: "strict-origin-when-cross-origin"
-          Content-Security-Policy: "upgrade-insecure-requests"
+  #  security-headers:
+  #    headers:
+  #      customResponseHeaders:
+   #       X-Frame-Options: "SAMEORIGIN"
+  #        X-Content-Type-Options: "nosniff"
+  #        X-XSS-Protection: "1; mode=block"
+  #        Referrer-Policy: "strict-origin-when-cross-origin"
+  #        Content-Security-Policy: "upgrade-insecure-requests"
 
   services:
     odoo-loadbalancer:
