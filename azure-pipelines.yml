@@ -249,6 +249,18 @@ stages:
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
 
           - task: SSH@0
+            displayName: "Write Odoo Config"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm2'
+              runOptions: commands
+              commands: |
+                set -e
+                sed -i "s|ODOO_DB_HOST|$(ODOO_DB_HOST)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_DB_USER|$(ODOO_DB_USER)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_DB_PASSWORD|$(ODOO_DB_PASSWORD)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_ADMIN_PASSWORD|$(ODOO_ADMIN_PASSWORD)|" /home/is214/e08g10t02-odoo17/odoo.conf
+
+          - task: SSH@0
             displayName: "Write Environment File"
             inputs:
               sshEndpoint: 'ssh-odoo17-production-vm2'
@@ -350,6 +362,18 @@ stages:
                 sudo rm -rf /home/is214/e08g10t02-odoo17
                 sudo git clone -b master-vm3 https://github.com/joczx/e08g10t02-odoo17.git /home/is214/e08g10t02-odoo17 2>&1
                 sudo chown -R is214:is214 /home/is214/e08g10t02-odoo17
+              
+          - task: SSH@0
+            displayName: "Write Odoo Config"
+            inputs:
+              sshEndpoint: 'ssh-odoo17-production-vm3'
+              runOptions: commands
+              commands: |
+                set -e
+                sed -i "s|ODOO_DB_HOST|$(ODOO_DB_HOST)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_DB_USER|$(ODOO_DB_USER)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_DB_PASSWORD|$(ODOO_DB_PASSWORD)|" /home/is214/e08g10t02-odoo17/odoo.conf
+                sed -i "s|ODOO_ADMIN_PASSWORD|$(ODOO_ADMIN_PASSWORD)|" /home/is214/e08g10t02-odoo17/odoo.conf
 
           - task: SSH@0
             displayName: "Write Environment File"
