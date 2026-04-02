@@ -391,7 +391,7 @@ stages:
             displayName: "Post-Deploy Moodle Fixes"
             timeoutInMinutes: 5
             inputs:
-              sshEndpoint: 'ssh-odoo17-production-vm2'
+              sshEndpoint: 'ssh-odoo17-production-vm3'
               runOptions: commands
               commands: |
                 echo "=== Waiting for Moodle to start ==="
