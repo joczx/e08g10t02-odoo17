@@ -32,7 +32,7 @@ http:
     rate-limit:
       rateLimit:
         average: 100
-        burst: 80
+        burst: 150
         period: 1s
     security-headers:
       headers:
