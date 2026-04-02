@@ -5,6 +5,9 @@ http:
       entryPoints:
         - websecure
       service: odoo-loadbalancer
+      middlewares:
+        - rate-limit
+        - security-headers
       tls:
         certResolver: letsencrypt
     moodle-router:
@@ -12,6 +15,9 @@ http:
       entryPoints:
         - websecure
       service: moodle-loadbalancer
+      middlewares:
+        - rate-limit
+        - security-headers
       tls:
         certResolver: letsencrypt
     traefik-dashboard:
@@ -21,6 +27,21 @@ http:
       service: api@internal
       tls:
         certResolver: letsencrypt
+
+  middlewares:
+    rate-limit:
+      rateLimit:
+        average: 550
+        burst: 200
+        period: 1s
+    security-headers:
+      headers:
+        customResponseHeaders:
+          X-Frame-Options: "SAMEORIGIN"
+          X-Content-Type-Options: "nosniff"
+          X-XSS-Protection: "1; mode=block"
+          Referrer-Policy: "strict-origin-when-cross-origin"
+          Content-Security-Policy: "upgrade-insecure-requests"
 
   services:
     odoo-loadbalancer:
